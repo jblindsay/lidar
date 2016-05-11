@@ -20,7 +20,7 @@ dependencies:
 ```crystal
 require "lidar"
 
-file_name = "/Users/johnlindsay/Documents/Programming/CrystalCode/lidar/spec/test_data/test.las"
+file_name = "path/to/file/test.las"
 lf = Lidar::LasFile.new file_name, "r"
 puts("#{lf.to_s}")
 
@@ -37,7 +37,7 @@ end
 end
 
 # Create a new LAS file
-file_name2 = "/Users/johnlindsay/Documents/Programming/CrystalCode/lidar/spec/test_data/test2.las"
+file_name2 = "path/to/file/test2.las"
 lf2 = Lidar::LasFile.new file_name2, "w"
 
 # Add the header
