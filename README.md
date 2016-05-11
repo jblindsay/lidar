@@ -1,6 +1,6 @@
 # lidar
 
-This is a small library for reading and writing LiDAR data in the widely used LAS file format. The library was an experiment to learn the Crystal programming language.
+This is a small library for reading and writing [LiDAR](https://en.wikipedia.org/wiki/Lidar) data in the widely used [LAS file format](http://www.asprs.org/committee-general/laser-las-file-format-exchange-activities.html). The library has been developed as an experiment to learn the [Crystal programming language](http://crystal-lang.org/).
 
 ## Installation
 
