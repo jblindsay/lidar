@@ -5,18 +5,18 @@ describe Lidar do
   it "works" do
     file_name = "/Users/johnlindsay/Documents/Programming/CrystalCode/lidar/spec/test_data/test.las"
     lf = Lidar::LasFile.new file_name, "r"
-    puts("#{lf.to_s}")
+    puts("#{lf}")
 
     # Now print the VLRs
     if lf.header.number_of_vlrs > 0
       (0...lf.header.number_of_vlrs).each { |i|
         puts "VLR #{i + 1}:"
-        puts("#{lf.vlr_data[i].to_s}")
+        puts("#{lf.vlr_data[i]}")
       }
     end
 
     (0...10).each do |i|
-      puts("Point #{i + 1} #{lf.get_xyzi_data(i).to_s}")
+      puts("Point #{i + 1} #{lf.get_xyzi_data(i)}")
     end
 
     # Create a new LAS file

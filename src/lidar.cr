@@ -19,8 +19,8 @@ module Lidar
     property green
     property blue
 
-    def to_s
-      return "red: #{@red}, green: #{@green}, blue: #{@blue}"
+    def to_s(io)
+      io << "red: #{@red}, green: #{@green}, blue: #{@blue}"
     end
   end
 
@@ -42,7 +42,7 @@ module Lidar
       @binary_data = [] of UInt8
     end
 
-    def to_s
+    def to_s(io)
       s = "\tReserved: #{@reserved}\n" +
         "\tUser ID: #{@user_id}\n" +
         "\tRecord ID: #{@record_id}\n" +
@@ -67,7 +67,7 @@ module Lidar
       else
         s += "\tData: #{@binary_data.map { |x| x.chr }.join.strip}"
       end
-      return s
+      io << s
     end
   end
 
@@ -95,10 +95,10 @@ module Lidar
       return ((@value >> 7_u8) & 1_u8) == 1_u8
     end
 
-    def to_s
+    def to_s(io)
       s = "{value: #{@value}, return: #{return_number}, returns: #{number_of_returns}," +
         " scan dir flag: #{scan_direction_flag}, flightline: #{edge_of_flightline}}"
-      return s
+      io << s
     end
   end
 
@@ -162,10 +162,9 @@ module Lidar
       return ((value >> 7_u8) & 1_u8) == 1_u8
     end
 
-    def to_s
-      s = "{value: #{@value}, name: #{classification_name}, synthetic: #{synthetic}," +
+    def to_s(io)
+      io << "{value: #{@value}, name: #{classification_name}, synthetic: #{synthetic}," +
         " keypoint: #{keypoint}, withheld: #{withheld}}"
-      return s
     end
   end
 
@@ -184,8 +183,8 @@ module Lidar
     property y
     property z
 
-    def to_s
-      return "x=#{sprintf("%.4f", @x)}, y=#{sprintf("%.4f", @y)}, z=#{sprintf("%.4f", @z)}"
+    def to_s(io)
+      io << "x=#{sprintf("%.4f", @x)}, y=#{sprintf("%.4f", @y)}, z=#{sprintf("%.4f", @z)}"
     end
   end
 
@@ -203,8 +202,8 @@ module Lidar
 
     property intensity
 
-    def to_s
-      return ("x=#{sprintf("%.4f", @x)}, y=#{sprintf("%.4f", @y)}, z=#{sprintf("%.4f", @z)}, i=#{@intensity}")
+    def to_s(io)
+      io << ("x=#{sprintf("%.4f", @x)}, y=#{sprintf("%.4f", @y)}, z=#{sprintf("%.4f", @z)}, i=#{@intensity}")
     end
   end
 
@@ -233,17 +232,17 @@ module Lidar
     property user_data
     property point_source_id
 
-    def to_s
+    def to_s(io)
       s = "x=#{sprintf("%.4f", @x)}, " +
         "y=#{sprintf("%.4f", @y)}, " +
         "z=#{sprintf("%.4f", @z)}, " +
         "intensity=#{@intensity}, " +
-        "bit field=#{(@bit_field).to_s}, " +
-        "class field=#{(@class_field).to_s}, " +
+        "bit field=#{@bit_field}, " +
+        "class field=#{@class_field}, " +
         "scan angle=#{@scan_angle}, " +
         "user data=#{@user_data}, " +
         "point source ID=#{@point_source_id}"
-      return s
+      io << s
     end
   end
 
@@ -276,12 +275,12 @@ module Lidar
       @x_offset = 0_f64
       @y_offset = 0_f64
       @z_offset = 0_f64
-      @max_x = -32768.0_f64 # Float64::MIN
-      @min_x = 32768.0_f64  # Float64::MAX
-      @max_y = -32768.0_f64
-      @min_y = 32768.0_f64
-      @max_z = -32768.0_f64
-      @min_z = 32768.0_f64
+      @max_x = -2147483648.0_f64 # Float64::MIN
+      @min_x = 2147483648.0_f64  # Float64::MAX
+      @max_y = -2147483648.0_f64
+      @min_y = 2147483648.0_f64
+      @max_z = -2147483648.0_f64
+      @min_z = 2147483648.0_f64
       @waveform_data_start = 0_u64
     end
 
@@ -319,7 +318,7 @@ module Lidar
     property min_z
     property waveform_data_start
 
-    def to_s
+    def to_s(io)
       s = "File Signature: #{@file_signature}\n" +
         "File Source ID: #{@file_source_id}\n" +
         "Global Encoding: #{@global_encoding}\n" +
@@ -354,8 +353,9 @@ module Lidar
       if @version_major == 1 && @version_minor >= 3
         s += "\nWaveform Data Start: #{@waveform_data_start}"
       end
-      return s
+      io << s
     end
+
   end
 
   # The main class for dealing with a LAS file data structure.
@@ -517,8 +517,8 @@ module Lidar
     end
 
     # Returns a string represenation of the LAS file properties.
-    def to_s
-      return @header.to_s
+    def to_s(io)
+      io << @header
     end
 
     # Reads the header, variable length records (VLRs), and point data of the LAS file.
@@ -1542,8 +1542,8 @@ module Lidar
 
     property point
 
-    def to_s
-      return @point.to_s
+    def to_s(io)
+      io << @point
     end
 
     def clone
@@ -1559,8 +1559,8 @@ module Lidar
     property point
     property gps_time
 
-    def to_s
-      return "#{@point.to_s}, GPS time=" + sprintf("%.6f", @gps_time)
+    def to_s(io)
+      io << "#{@point}, GPS time=" + sprintf("%.6f", @gps_time)
     end
 
     def clone
@@ -1576,8 +1576,8 @@ module Lidar
     property point
     property rgb_data
 
-    def to_s
-      return "#{@point.to_s}, RGB=#{@rgb_data.to_s}"
+    def to_s(io)
+      io << "#{@point}, RGB=#{@rgb_data}"
     end
 
     def clone
@@ -1594,8 +1594,8 @@ module Lidar
     property gps_time
     property rgb_data
 
-    def to_s
-      return "#{@point.to_s}, GPS time=" + sprintf("%.6f", @gps_time) + ", RGB=#{@rgb_data.to_s}"
+    def to_s(io)
+      io << "#{@point}, GPS time=" + sprintf("%.6f", @gps_time) + ", RGB=#{@rgb_data}"
     end
 
     def clone

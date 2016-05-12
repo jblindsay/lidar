@@ -10,6 +10,9 @@ crystal tool format
 echo "Running Crystal doc..."
 crystal doc
 
+# echo "Unit tests..."
+# crystal spec
+
 echo "Crystal is building Lidar..."
 crystal build src/lidar.cr --release
 

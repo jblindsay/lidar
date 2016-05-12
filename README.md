@@ -16,7 +16,6 @@ dependencies:
 
 ## Usage
 
-
 ```crystal
 require "lidar"
 
@@ -41,7 +40,7 @@ end
   puts("Point #{i + 1} #{lf.get_xyzi_data(i).to_s}")
 end
 
-# Create a new LAS file
+# Create a new LAS file to write data into
 file_name2 = "path/to/file/test2.las"
 lf2 = Lidar::LasFile.new file_name2, "w"
 
@@ -68,13 +67,6 @@ end
 # Write the data
 lf2.write
 ```
-
-
-<!-- TODO: Write usage instructions here -->
-
-<!-- ## Development
-
-TODO: Write development instructions here -->
 
 ## Contributing
 
