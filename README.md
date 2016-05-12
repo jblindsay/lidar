@@ -21,10 +21,14 @@ dependencies:
 require "lidar"
 
 file_name = "path/to/file/test.las"
+
+# Create a new LasFile instance for reading based on the file_name
 lf = Lidar::LasFile.new file_name, "r"
+
+# Print the meta data contained in the LAS header
 puts("#{lf.to_s}")
 
-# Now print the VLRs
+# Now print the variable length records (VLRs)
 if lf.header.number_of_vlrs > 0
   (0...lf.header.number_of_vlrs).each { |i|
     puts "VLR #{i + 1}:"
@@ -32,6 +36,7 @@ if lf.header.number_of_vlrs > 0
   }
 end
 
+# Print the first 10 points of the LAS data
 (0...10).each do |i|
   puts("Point #{i + 1} #{lf.get_xyzi_data(i).to_s}")
 end
@@ -48,21 +53,19 @@ lf.vlr_data.each do |vlr|
   lf2.add_vlr(vlr)
 end
 
-# Add the point data to the file
+# Add the point data to the file that lies within a specified area
 north = 4363700.0
 south = 4363200.0
 east = 659400.0
 west = 658900.0
-num_points_added = 0
 (0...lf.header.number_of_points).each do |i|
   p = lf[i]
   if (west <= p.point.x <= east) && (south <= p.point.y <= north)
     lf2.add_point_record(lf[i])
-    num_points_added += 1
   end
 end
-puts("num points addded = #{num_points_added}")
 
+# Write the data
 lf2.write
 ```
 
