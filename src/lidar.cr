@@ -1,23 +1,22 @@
-require "./lidar/*"
 require "io"
+require "./GeoTiffKey"
+
+# require "./lidar/*"
 
 # Module for manipulating LiDAR (laser altimetry) data.
 module Lidar
   # A 16-bit per channel (UInt16) red-green-blue (RGB) data structure, used for specifying point colouring.
   struct RGBData
-    @red : UInt16
-    @green : UInt16
-    @blue : UInt16
+    property red, green, blue
+    @red = 0_u16
+    @green = 0_u16
+    @blue = 0_u16
 
     def initialize
-      @red = 0_u16
-      @green = 0_u16
-      @blue = 0_u16
     end
 
-    property red
-    property green
-    property blue
+    def initialize(@red : Uint16, @green : Uint16, @blue : Uint16)
+    end
 
     def to_s(io)
       io << "red: #{@red}, green: #{@green}, blue: #{@blue}"
@@ -52,7 +51,7 @@ module Lidar
         shorts = [] of UInt16
         i = 0
         while i < @binary_data.size
-          shorts << (@binary_data[i, 2].to_unsafe as UInt16*).value
+          shorts << (@binary_data[i, 2].to_unsafe.as(UInt16*)).value
           i += 2
         end
         s += "\tData: #{shorts}"
@@ -60,7 +59,7 @@ module Lidar
         doubles = [] of Float64
         i = 0
         while i < @binary_data.size
-          doubles << (@binary_data[i, 8].to_unsafe as Float64*).value
+          doubles << (@binary_data[i, 8].to_unsafe.as(Float64*)).value
           i += 8
         end
         s += "\tData: #{doubles}"
@@ -104,38 +103,38 @@ module Lidar
 
   # The point classification enum used in the LAS specifications v. 1.3.
   enum ClassificationName : UInt8
-    NeverClassified  =  0
-    Unclassified     =  1
-    Ground           =  2
-    LowVegetation    =  3
-    MedVegetation    =  4
-    HighVegetation   =  5
-    Building         =  6
-    LowPoint         =  7
-    ModelKeyPoint    =  8
-    Water            =  9
-    Reserved1        = 10
-    Reserved2        = 11
-    OverlappingPoint = 12
-    Reserved3        = 13
-    Reserved4        = 14
-    Reserved5        = 15
-    Reserved6        = 16
-    Reserved7        = 17
-    Reserved8        = 18
-    Reserved9        = 19
-    Reserved10       = 20
-    Reserved11       = 21
-    Reserved12       = 22
-    Reserved13       = 23
-    Reserved14       = 24
-    Reserved15       = 25
-    Reserved16       = 26
-    Reserved17       = 27
-    Reserved18       = 28
-    Reserved19       = 29
-    Reserved20       = 30
-    Reserved21       = 31
+    NeverClassified   =  0
+    Unclassified      =  1
+    Ground            =  2
+    LowVegetation     =  3
+    MedVegetation     =  4
+    HighVegetation    =  5
+    Building          =  6
+    LowPoint          =  7
+    Reserved1         =  8
+    Water             =  9
+    Rail              = 10
+    RoadSurface       = 11
+    Reserved2         = 12
+    WireGuard         = 13
+    WireConductor     = 14
+    TransmissionTower = 15
+    WireStructConn    = 16
+    BridgeDeck        = 17
+    HighNoise         = 18
+    Reserved3         = 19
+    Reserved4         = 20
+    Reserved5         = 21
+    Reserved6         = 22
+    Reserved7         = 23
+    Reserved8         = 24
+    Reserved9         = 25
+    Reserved10        = 26
+    Reserved11        = 27
+    Reserved12        = 28
+    Reserved13        = 29
+    Reserved24        = 30
+    Reserved25        = 31
   end
 
   # This struct represents the classification bit field contained within a LAS file's PointData.
@@ -355,7 +354,6 @@ module Lidar
       end
       io << s
     end
-
   end
 
   # The main class for dealing with a LAS file data structure.
@@ -495,12 +493,12 @@ module Lidar
       @header.number_of_points_by_return[p.point.bit_field.return_number - 1] += 1
       case @header.point_format
       when 1
-        @gps_time_data << (p as PointRecord1).gps_time
+        @gps_time_data << (p.as(PointRecord1)).gps_time
       when 2
-        @rgb_data << (p as PointRecord2).rgb_data
+        @rgb_data << (p.as(PointRecord2)).rgb_data
       when 3
-        @gps_time_data << (p as PointRecord3).gps_time
-        @rgb_data << (p as PointRecord3).rgb_data
+        @gps_time_data << (p.as(PointRecord3)).gps_time
+        @rgb_data << (p.as(PointRecord3)).rgb_data
       end
 
       @header.number_of_points += 1
@@ -559,11 +557,11 @@ module Lidar
         raise "The file signature must be equal to 'LASF'. This may not be a LAS file."
         return
       end
-      @header.file_source_id = (buffer[4, 2].to_unsafe as UInt16*).value
-      @header.global_encoding = (buffer[6, 2].to_unsafe as UInt16*).value
-      @header.project_id1 = (buffer[8, 4].to_unsafe as UInt32*).value
-      @header.project_id2 = (buffer[12, 2].to_unsafe as UInt16*).value
-      @header.project_id3 = (buffer[14, 2].to_unsafe as UInt16*).value
+      @header.file_source_id = (buffer[4, 2].to_unsafe.as(UInt16*)).value
+      @header.global_encoding = (buffer[6, 2].to_unsafe.as(UInt16*)).value
+      @header.project_id1 = (buffer[8, 4].to_unsafe.as(UInt32*)).value
+      @header.project_id2 = (buffer[12, 2].to_unsafe.as(UInt16*)).value
+      @header.project_id3 = (buffer[14, 2].to_unsafe.as(UInt16*)).value
       @header.project_id4 = buffer[16, 8].to_a
       # @header.project_id4 = buffer[16, 8].map { |x|
       #   x
@@ -586,14 +584,14 @@ module Lidar
           " "
         end
       }.join
-      @header.file_creation_day = (buffer[90, 2].to_unsafe as UInt16*).value
-      @header.file_creation_year = (buffer[92, 2].to_unsafe as UInt16*).value
-      @header.header_size = (buffer[94, 2].to_unsafe as UInt16*).value.to_u16
-      @header.offset_to_points = (buffer[96, 4].to_unsafe as UInt32*).value
-      @header.number_of_vlrs = (buffer[100, 4].to_unsafe as UInt32*).value
-      @header.point_format = (buffer[104, 1].to_unsafe as UInt8*).value
-      @header.point_record_length = (buffer[105, 2].to_unsafe as UInt16*).value
-      @header.number_of_points = (buffer[107, 4].to_unsafe as UInt32*).value
+      @header.file_creation_day = (buffer[90, 2].to_unsafe.as(UInt16*)).value
+      @header.file_creation_year = (buffer[92, 2].to_unsafe.as(UInt16*)).value
+      @header.header_size = (buffer[94, 2].to_unsafe.as(UInt16*)).value.to_u16
+      @header.offset_to_points = (buffer[96, 4].to_unsafe.as(UInt32*)).value
+      @header.number_of_vlrs = (buffer[100, 4].to_unsafe.as(UInt32*)).value
+      @header.point_format = (buffer[104, 1].to_unsafe.as(UInt8*)).value
+      @header.point_record_length = (buffer[105, 2].to_unsafe.as(UInt16*)).value
+      @header.number_of_points = (buffer[107, 4].to_unsafe.as(UInt32*)).value
 
       num_returns = 5
       if @header.version_major == 1_u8 && @header.version_minor > 3_u8
@@ -602,46 +600,46 @@ module Lidar
       offset = 111
       # @number_of_points_by_return = [] of UInt32
       @header.number_of_points_by_return = Array.new(num_returns) { |i|
-        (buffer[offset + i * 4, 4].to_unsafe as UInt32*).value
+        (buffer[offset + i * 4, 4].to_unsafe.as(UInt32*)).value
       }
       offset += 4 * num_returns
-      @header.x_scale_factor = (buffer[offset, 8].to_unsafe as Float64*).value
+      @header.x_scale_factor = (buffer[offset, 8].to_unsafe.as(Float64*)).value
       offset += 8
-      @header.y_scale_factor = (buffer[offset, 8].to_unsafe as Float64*).value
+      @header.y_scale_factor = (buffer[offset, 8].to_unsafe.as(Float64*)).value
       offset += 8
-      @header.z_scale_factor = (buffer[offset, 8].to_unsafe as Float64*).value
+      @header.z_scale_factor = (buffer[offset, 8].to_unsafe.as(Float64*)).value
       offset += 8
-      @header.x_offset = (buffer[offset, 8].to_unsafe as Float64*).value
+      @header.x_offset = (buffer[offset, 8].to_unsafe.as(Float64*)).value
       offset += 8
-      @header.y_offset = (buffer[offset, 8].to_unsafe as Float64*).value
+      @header.y_offset = (buffer[offset, 8].to_unsafe.as(Float64*)).value
       offset += 8
-      @header.z_offset = (buffer[offset, 8].to_unsafe as Float64*).value
+      @header.z_offset = (buffer[offset, 8].to_unsafe.as(Float64*)).value
       offset += 8
-      @header.max_x = (buffer[offset, 8].to_unsafe as Float64*).value
+      @header.max_x = (buffer[offset, 8].to_unsafe.as(Float64*)).value
       offset += 8
-      @header.min_x = (buffer[offset, 8].to_unsafe as Float64*).value
+      @header.min_x = (buffer[offset, 8].to_unsafe.as(Float64*)).value
       offset += 8
-      @header.max_y = (buffer[offset, 8].to_unsafe as Float64*).value
+      @header.max_y = (buffer[offset, 8].to_unsafe.as(Float64*)).value
       offset += 8
-      @header.min_y = (buffer[offset, 8].to_unsafe as Float64*).value
+      @header.min_y = (buffer[offset, 8].to_unsafe.as(Float64*)).value
       offset += 8
-      @header.max_z = (buffer[offset, 8].to_unsafe as Float64*).value
+      @header.max_z = (buffer[offset, 8].to_unsafe.as(Float64*)).value
       offset += 8
-      @header.min_z = (buffer[offset, 8].to_unsafe as Float64*).value
+      @header.min_z = (buffer[offset, 8].to_unsafe.as(Float64*)).value
 
       if @header.version_major == 1_u8 && @header.version_minor == 3_u8
         offset += 8
-        @header.waveform_data_start = (buffer[offset, 8].to_unsafe as UInt64*).value
+        @header.waveform_data_start = (buffer[offset, 8].to_unsafe.as(UInt64*)).value
       end
 
       # ####################
       # Read the VLR data #
       # ####################
       offset = @header.header_size
-      num = (buffer[100, 4].to_unsafe as Int32*).value # Num VLRs; note, Array.new takes an Int32 and not a UInt32
+      num = (buffer[100, 4].to_unsafe.as(Int32*)).value # Num VLRs; note, Array.new takes an Int32 and not a UInt32
       @vlr_data = Array.new(num) { |i|
         vlr = VLR.new
-        vlr.reserved = (buffer[offset, 2].to_unsafe as UInt16*).value
+        vlr.reserved = (buffer[offset, 2].to_unsafe.as(UInt16*)).value
         vlr.user_id = buffer[offset + 2, 16].map { |x|
           if x.chr != '\u{0}'
             x.chr
@@ -649,8 +647,8 @@ module Lidar
             " "
           end
         }.join
-        vlr.record_id = (buffer[offset + 18, 2].to_unsafe as UInt16*).value
-        vlr.record_length_after_header = (buffer[offset + 20, 2].to_unsafe as UInt16*).value
+        vlr.record_id = (buffer[offset + 18, 2].to_unsafe.as(UInt16*)).value
+        vlr.record_length_after_header = (buffer[offset + 20, 2].to_unsafe.as(UInt16*)).value
         vlr.description = buffer[offset + 22, 32].map { |x|
           if x.chr != '\u{0}'
             x.chr
@@ -668,27 +666,27 @@ module Lidar
       # ######################
       # Read the point data #
       # ######################
-      num_points = (buffer[107, 4].to_unsafe as Int32*).value # Num Points; note, Array.new takes an Int32 and not a UInt32
+      num_points = (buffer[107, 4].to_unsafe.as(Int32*)).value # Num Points; note, Array.new takes an Int32 and not a UInt32
       @point_data = Array.new(num_points) { |i|
         offset = @header.offset_to_points + i * @header.point_record_length
         point = PointData.new
-        point.x = (buffer[offset, 4].to_unsafe as Int32*).value * @header.x_scale_factor + @header.x_offset
+        point.x = (buffer[offset, 4].to_unsafe.as(Int32*)).value * @header.x_scale_factor + @header.x_offset
         offset += 4
-        point.y = (buffer[offset, 4].to_unsafe as Int32*).value * @header.y_scale_factor + @header.y_offset
+        point.y = (buffer[offset, 4].to_unsafe.as(Int32*)).value * @header.y_scale_factor + @header.y_offset
         offset += 4
-        point.z = (buffer[offset, 4].to_unsafe as Int32*).value * @header.z_scale_factor + @header.z_offset
+        point.z = (buffer[offset, 4].to_unsafe.as(Int32*)).value * @header.z_scale_factor + @header.z_offset
         offset += 4
-        point.intensity = (buffer[offset, 2].to_unsafe as UInt16*).value
+        point.intensity = (buffer[offset, 2].to_unsafe.as(UInt16*)).value
         offset += 2
         point.bit_field.value = buffer[offset]
         offset += 1
         point.class_field.value = buffer[offset]
         offset += 1
-        point.scan_angle = (buffer[offset, 1].to_unsafe as Int8*).value
+        point.scan_angle = (buffer[offset, 1].to_unsafe.as(Int8*)).value
         offset += 1
-        point.user_data = (buffer[offset, 1].to_unsafe as UInt8*).value
+        point.user_data = (buffer[offset, 1].to_unsafe.as(UInt8*)).value
         offset += 1
-        point.point_source_id = (buffer[offset, 2].to_unsafe as UInt16*).value
+        point.point_source_id = (buffer[offset, 2].to_unsafe.as(UInt16*)).value
         point
       }
 
@@ -696,31 +694,31 @@ module Lidar
         # read the gps data
         @gps_time_data = Array.new(num_points) { |i|
           offset = @header.offset_to_points + 20 + i * @header.point_record_length
-          (buffer[offset, 8].to_unsafe as Float64*).value
+          (buffer[offset, 8].to_unsafe.as(Float64*)).value
         }
       elsif @header.point_format == 2
         # read the rgb data
         @rgb_data = Array.new(num_points) { |i|
           rgb = RGBData.new
           offset = @header.offset_to_points + 20 + i * @header.point_record_length
-          rgb.red = (buffer[offset, 2].to_unsafe as UInt16*).value
-          rgb.green = (buffer[offset + 2, 2].to_unsafe as UInt16*).value
-          rgb.blue = (buffer[offset + 4, 2].to_unsafe as UInt16*).value
+          rgb.red = (buffer[offset, 2].to_unsafe.as(UInt16*)).value
+          rgb.green = (buffer[offset + 2, 2].to_unsafe.as(UInt16*)).value
+          rgb.blue = (buffer[offset + 4, 2].to_unsafe.as(UInt16*)).value
           rgb
         }
       elsif @header.point_format == 3
         # read the gps data
         @gps_time_data = Array.new(num_points) { |i|
           offset = @header.offset_to_points + 20 + i * @header.point_record_length
-          (buffer[offset, 8].to_unsafe as Float64*).value
+          (buffer[offset, 8].to_unsafe.as(Float64*)).value
         }
         # read the rgb data
         @rgb_data = Array.new(num_points) { |i|
           rgb = RGBData.new
           offset = @header.offset_to_points + 28 + i * @header.point_record_length
-          rgb.red = (buffer[offset, 2].to_unsafe as UInt16*).value
-          rgb.green = (buffer[offset + 2, 2].to_unsafe as UInt16*).value
-          rgb.blue = (buffer[offset + 4, 2].to_unsafe as UInt16*).value
+          rgb.red = (buffer[offset, 2].to_unsafe.as(UInt16*)).value
+          rgb.green = (buffer[offset + 2, 2].to_unsafe.as(UInt16*)).value
+          rgb.blue = (buffer[offset + 4, 2].to_unsafe.as(UInt16*)).value
           rgb
         }
       end
@@ -932,7 +930,7 @@ module Lidar
       # Write the header to the buffer #
       # #################################
       # Output the file signature, LASF
-      ptr = @header.file_signature.to_unsafe as UInt8*
+      ptr = @header.file_signature.to_unsafe.as(UInt8*)
       d = ptr.to_slice(4 * sizeof(UInt8))
       d.each do |b|
         buffer[offset] = b
@@ -941,7 +939,7 @@ module Lidar
 
       # Output the file source ID
       # fsid = @header.file_source_id
-      bytes_ptr = pointerof(@header.@file_source_id) as {UInt8, UInt8}*
+      bytes_ptr = pointerof(@header.@file_source_id).as({UInt8, UInt8}*)
       bytes_ptr.value.each do |b|
         buffer[offset] = b
         offset += 1
@@ -949,7 +947,7 @@ module Lidar
 
       # Output the global encoding
       # ge = @header.global_encoding
-      bytes_ptr = pointerof(@header.@global_encoding) as {UInt8, UInt8}*
+      bytes_ptr = pointerof(@header.@global_encoding).as({UInt8, UInt8}*)
       bytes_ptr.value.each do |b|
         buffer[offset] = b
         offset += 1
@@ -957,7 +955,7 @@ module Lidar
 
       # Output the Project ID 1
       # pid1 = @header.project_id1
-      bytes_ptr = pointerof(@header.@project_id1) as {UInt8, UInt8, UInt8, UInt8}*
+      bytes_ptr = pointerof(@header.@project_id1).as({UInt8, UInt8, UInt8, UInt8}*)
       bytes_ptr.value.each do |b|
         buffer[offset] = b
         offset += 1
@@ -969,7 +967,7 @@ module Lidar
 
       # Output the Project ID 2
       # pid2 = @header.project_id2
-      bytes_ptr = pointerof(@header.@project_id2) as {UInt8, UInt8}*
+      bytes_ptr = pointerof(@header.@project_id2).as({UInt8, UInt8}*)
       bytes_ptr.value.each do |b|
         buffer[offset] = b
         offset += 1
@@ -977,14 +975,14 @@ module Lidar
 
       # Output the Project ID 3
       # pid3 = @header.project_id3
-      bytes_ptr = pointerof(@header.@project_id3) as {UInt8, UInt8}*
+      bytes_ptr = pointerof(@header.@project_id3).as({UInt8, UInt8}*)
       bytes_ptr.value.each do |b|
         buffer[offset] = b
         offset += 1
       end
 
       # Output the Project ID 4
-      ptr = @header.project_id4.to_unsafe as UInt8*
+      ptr = @header.project_id4.to_unsafe.as(UInt8*)
       d = ptr.to_slice(8 * sizeof(UInt8))
       d.each do |b|
         buffer[offset] = b
@@ -998,7 +996,7 @@ module Lidar
       offset += 1
 
       # Output the System ID
-      ptr = fixed_width_string(@header.system_identifier, 32).to_unsafe as UInt8*
+      ptr = fixed_width_string(@header.system_identifier, 32).to_unsafe.as(UInt8*)
       d = ptr.to_slice(32 * sizeof(UInt8))
       d.each do |b|
         buffer[offset] = b
@@ -1006,7 +1004,7 @@ module Lidar
       end
 
       # Output the generating software
-      ptr = fixed_width_string(@header.generating_software, 32).to_unsafe as UInt8*
+      ptr = fixed_width_string(@header.generating_software, 32).to_unsafe.as(UInt8*)
       d = ptr.to_slice(32 * sizeof(UInt8))
       d.each do |b|
         buffer[offset] = b
@@ -1017,7 +1015,7 @@ module Lidar
       time = Time.now
       @header.file_creation_day = time.day_of_year.to_u16
       # fcd = @header.file_creation_day
-      bytes_ptr = pointerof(@header.@file_creation_day) as {UInt8, UInt8}*
+      bytes_ptr = pointerof(@header.@file_creation_day).as({UInt8, UInt8}*)
       bytes_ptr.value.each do |b|
         buffer[offset] = b
         offset += 1
@@ -1026,7 +1024,7 @@ module Lidar
       # Output the year
       @header.file_creation_year = time.year.to_u16
       # fcy = @header.file_creation_year
-      bytes_ptr = pointerof(@header.@file_creation_year) as {UInt8, UInt8}*
+      bytes_ptr = pointerof(@header.@file_creation_year).as({UInt8, UInt8}*)
       bytes_ptr.value.each do |b|
         buffer[offset] = b
         offset += 1
@@ -1035,7 +1033,7 @@ module Lidar
       # Output the header size
       hdrs = @header.header_size.to_u16
       # puts typeof(@header.header_size)
-      bytes_ptr = pointerof(hdrs) as {UInt8, UInt8}*
+      bytes_ptr = pointerof(hdrs).as({UInt8, UInt8}*)
       bytes_ptr.value.each do |b|
         buffer[offset] = b
         offset += 1
@@ -1043,7 +1041,7 @@ module Lidar
 
       # Output the offset to points
       otp = @header.offset_to_points.to_u32
-      bytes_ptr = pointerof(otp) as {UInt8, UInt8, UInt8, UInt8}*
+      bytes_ptr = pointerof(otp).as({UInt8, UInt8, UInt8, UInt8}*)
       bytes_ptr.value.each do |b|
         buffer[offset] = b
         offset += 1
@@ -1051,7 +1049,7 @@ module Lidar
 
       # Output the number of VLRs
       nv = @header.number_of_vlrs.to_u32
-      bytes_ptr = pointerof(nv) as {UInt8, UInt8, UInt8, UInt8}*
+      bytes_ptr = pointerof(nv).as({UInt8, UInt8, UInt8, UInt8}*)
       bytes_ptr.value.each do |b|
         buffer[offset] = b
         offset += 1
@@ -1073,7 +1071,7 @@ module Lidar
         @header.point_record_length = 34_u16
       end
       prl = @header.point_record_length.to_u16
-      bytes_ptr = pointerof(prl) as {UInt8, UInt8}*
+      bytes_ptr = pointerof(prl).as({UInt8, UInt8}*)
       bytes_ptr.value.each do |b|
         buffer[offset] = b
         offset += 1
@@ -1081,7 +1079,7 @@ module Lidar
 
       # Output the number of points
       np = @header.number_of_points.to_u32
-      bytes_ptr = pointerof(np) as {UInt8, UInt8, UInt8, UInt8}*
+      bytes_ptr = pointerof(np).as({UInt8, UInt8, UInt8, UInt8}*)
       bytes_ptr.value.each do |b|
         buffer[offset] = b
         offset += 1
@@ -1090,7 +1088,7 @@ module Lidar
       # Output the number of points by return
       (0..4).each do |i|
         d32 = @header.number_of_points_by_return[i]
-        bytes_ptr = pointerof(d32) as {UInt8, UInt8, UInt8, UInt8}*
+        bytes_ptr = pointerof(d32).as({UInt8, UInt8, UInt8, UInt8}*)
         bytes_ptr.value.each do |b|
           buffer[offset] = b
           offset += 1
@@ -1099,7 +1097,7 @@ module Lidar
 
       # Output the x scale factor
       d64 = @header.x_scale_factor
-      bytes_ptr = pointerof(d64) as {UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8}*
+      bytes_ptr = pointerof(d64).as({UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8}*)
       bytes_ptr.value.each do |b|
         buffer[offset] = b
         offset += 1
@@ -1107,7 +1105,7 @@ module Lidar
 
       # Output the y scale factor
       d64 = @header.y_scale_factor
-      bytes_ptr = pointerof(d64) as {UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8}*
+      bytes_ptr = pointerof(d64).as({UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8}*)
       bytes_ptr.value.each do |b|
         buffer[offset] = b
         offset += 1
@@ -1115,7 +1113,7 @@ module Lidar
 
       # Output the z scale factor
       d64 = @header.z_scale_factor
-      bytes_ptr = pointerof(d64) as {UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8}*
+      bytes_ptr = pointerof(d64).as({UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8}*)
       bytes_ptr.value.each do |b|
         buffer[offset] = b
         offset += 1
@@ -1123,7 +1121,7 @@ module Lidar
 
       # Output the x offset
       d64 = @header.x_offset
-      bytes_ptr = pointerof(d64) as {UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8}*
+      bytes_ptr = pointerof(d64).as({UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8}*)
       bytes_ptr.value.each do |b|
         buffer[offset] = b
         offset += 1
@@ -1131,7 +1129,7 @@ module Lidar
 
       # Output the y offset
       d64 = @header.y_offset
-      bytes_ptr = pointerof(d64) as {UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8}*
+      bytes_ptr = pointerof(d64).as({UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8}*)
       bytes_ptr.value.each do |b|
         buffer[offset] = b
         offset += 1
@@ -1139,7 +1137,7 @@ module Lidar
 
       # Output the z offset
       d64 = @header.z_offset
-      bytes_ptr = pointerof(d64) as {UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8}*
+      bytes_ptr = pointerof(d64).as({UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8}*)
       bytes_ptr.value.each do |b|
         buffer[offset] = b
         offset += 1
@@ -1147,7 +1145,7 @@ module Lidar
 
       # Output the max x
       d64 = @header.max_x
-      bytes_ptr = pointerof(d64) as {UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8}*
+      bytes_ptr = pointerof(d64).as({UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8}*)
       bytes_ptr.value.each do |b|
         buffer[offset] = b
         offset += 1
@@ -1155,7 +1153,7 @@ module Lidar
 
       # Output the min x
       d64 = @header.min_x
-      bytes_ptr = pointerof(d64) as {UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8}*
+      bytes_ptr = pointerof(d64).as({UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8}*)
       bytes_ptr.value.each do |b|
         buffer[offset] = b
         offset += 1
@@ -1163,7 +1161,7 @@ module Lidar
 
       # Output the max y
       d64 = @header.max_y
-      bytes_ptr = pointerof(d64) as {UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8}*
+      bytes_ptr = pointerof(d64).as({UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8}*)
       bytes_ptr.value.each do |b|
         buffer[offset] = b
         offset += 1
@@ -1171,7 +1169,7 @@ module Lidar
 
       # Output the min y
       d64 = @header.min_y
-      bytes_ptr = pointerof(d64) as {UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8}*
+      bytes_ptr = pointerof(d64).as({UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8}*)
       bytes_ptr.value.each do |b|
         buffer[offset] = b
         offset += 1
@@ -1179,7 +1177,7 @@ module Lidar
 
       # Output the max z
       d64 = @header.max_z
-      bytes_ptr = pointerof(d64) as {UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8}*
+      bytes_ptr = pointerof(d64).as({UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8}*)
       bytes_ptr.value.each do |b|
         buffer[offset] = b
         offset += 1
@@ -1187,7 +1185,7 @@ module Lidar
 
       # Output the min z
       d64 = @header.min_z
-      bytes_ptr = pointerof(d64) as {UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8}*
+      bytes_ptr = pointerof(d64).as({UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8}*)
       bytes_ptr.value.each do |b|
         buffer[offset] = b
         offset += 1
@@ -1195,7 +1193,7 @@ module Lidar
 
       # Output the waveform data start
       d_u64 = @header.waveform_data_start
-      bytes_ptr = pointerof(d_u64) as {UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8}*
+      bytes_ptr = pointerof(d_u64).as({UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8}*)
       bytes_ptr.value.each do |b|
         buffer[offset] = b
         offset += 1
@@ -1207,13 +1205,13 @@ module Lidar
 
       @vlr_data.each do |vlr|
         d16 = vlr.reserved
-        bytes_ptr = pointerof(d16) as {UInt8, UInt8}*
+        bytes_ptr = pointerof(d16).as({UInt8, UInt8}*)
         bytes_ptr.value.each do |b|
           buffer[offset] = b
           offset += 1
         end
 
-        ptr = fixed_width_string(vlr.user_id, 16).to_unsafe as UInt8*
+        ptr = fixed_width_string(vlr.user_id, 16).to_unsafe.as(UInt8*)
         d = ptr.to_slice(16 * sizeof(UInt8))
         d.each do |b|
           buffer[offset] = b
@@ -1221,20 +1219,20 @@ module Lidar
         end
 
         d16 = vlr.record_id
-        bytes_ptr = pointerof(d16) as {UInt8, UInt8}*
+        bytes_ptr = pointerof(d16).as({UInt8, UInt8}*)
         bytes_ptr.value.each do |b|
           buffer[offset] = b
           offset += 1
         end
 
         d16 = vlr.record_length_after_header
-        bytes_ptr = pointerof(d16) as {UInt8, UInt8}*
+        bytes_ptr = pointerof(d16).as({UInt8, UInt8}*)
         bytes_ptr.value.each do |b|
           buffer[offset] = b
           offset += 1
         end
 
-        ptr = fixed_width_string(vlr.description, 32).to_unsafe as UInt8*
+        ptr = fixed_width_string(vlr.description, 32).to_unsafe.as(UInt8*)
         d = ptr.to_slice(32 * sizeof(UInt8))
         d.each do |b|
           buffer[offset] = b
@@ -1255,25 +1253,25 @@ module Lidar
         i = 0
         @point_data.each do |p|
           x = ((p.x - @header.x_offset) / @header.x_scale_factor).to_i32
-          bytes_ptr = pointerof(x) as {UInt8, UInt8, UInt8, UInt8}*
+          bytes_ptr = pointerof(x).as({UInt8, UInt8, UInt8, UInt8}*)
           bytes_ptr.value.each do |b|
             buffer[offset] = b
             offset += 1
           end
           y = ((p.y - @header.y_offset) / @header.y_scale_factor).to_i32
-          bytes_ptr = pointerof(y) as {UInt8, UInt8, UInt8, UInt8}*
+          bytes_ptr = pointerof(y).as({UInt8, UInt8, UInt8, UInt8}*)
           bytes_ptr.value.each do |b|
             buffer[offset] = b
             offset += 1
           end
           z = ((p.z - @header.z_offset) / @header.z_scale_factor).to_i32
-          bytes_ptr = pointerof(z) as {UInt8, UInt8, UInt8, UInt8}*
+          bytes_ptr = pointerof(z).as({UInt8, UInt8, UInt8, UInt8}*)
           bytes_ptr.value.each do |b|
             buffer[offset] = b
             offset += 1
           end
           d16 = p.intensity
-          bytes_ptr = pointerof(d16) as {UInt8, UInt8}*
+          bytes_ptr = pointerof(d16).as({UInt8, UInt8}*)
           bytes_ptr.value.each do |b|
             buffer[offset] = b
             offset += 1
@@ -1288,7 +1286,7 @@ module Lidar
           offset += 1
 
           d16 = p.point_source_id
-          bytes_ptr = pointerof(d16) as {UInt8, UInt8}*
+          bytes_ptr = pointerof(d16).as({UInt8, UInt8}*)
           bytes_ptr.value.each do |b|
             buffer[offset] = b
             offset += 1
@@ -1300,25 +1298,25 @@ module Lidar
         i = 0
         @point_data.each do |p|
           x = ((p.x - @header.x_offset) / @header.x_scale_factor).to_i32
-          bytes_ptr = pointerof(x) as {UInt8, UInt8, UInt8, UInt8}*
+          bytes_ptr = pointerof(x).as({UInt8, UInt8, UInt8, UInt8}*)
           bytes_ptr.value.each do |b|
             buffer[offset] = b
             offset += 1
           end
           y = ((p.y - @header.y_offset) / @header.y_scale_factor).to_i32
-          bytes_ptr = pointerof(y) as {UInt8, UInt8, UInt8, UInt8}*
+          bytes_ptr = pointerof(y).as({UInt8, UInt8, UInt8, UInt8}*)
           bytes_ptr.value.each do |b|
             buffer[offset] = b
             offset += 1
           end
           z = ((p.z - @header.z_offset) / @header.z_scale_factor).to_i32
-          bytes_ptr = pointerof(z) as {UInt8, UInt8, UInt8, UInt8}*
+          bytes_ptr = pointerof(z).as({UInt8, UInt8, UInt8, UInt8}*)
           bytes_ptr.value.each do |b|
             buffer[offset] = b
             offset += 1
           end
           d16 = p.intensity
-          bytes_ptr = pointerof(d16) as {UInt8, UInt8}*
+          bytes_ptr = pointerof(d16).as({UInt8, UInt8}*)
           bytes_ptr.value.each do |b|
             buffer[offset] = b
             offset += 1
@@ -1333,7 +1331,7 @@ module Lidar
           offset += 1
 
           d16 = p.point_source_id
-          bytes_ptr = pointerof(d16) as {UInt8, UInt8}*
+          bytes_ptr = pointerof(d16).as({UInt8, UInt8}*)
           bytes_ptr.value.each do |b|
             buffer[offset] = b
             offset += 1
@@ -1341,7 +1339,7 @@ module Lidar
 
           # Output the gps time
           gt = @gps_time_data[i]
-          bytes_ptr = pointerof(gt) as {UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8}*
+          bytes_ptr = pointerof(gt).as({UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8}*)
           bytes_ptr.value.each do |b|
             buffer[offset] = b
             offset += 1
@@ -1353,25 +1351,25 @@ module Lidar
         i = 0
         @point_data.each do |p|
           x = ((p.x - @header.x_offset) / @header.x_scale_factor).to_i32
-          bytes_ptr = pointerof(x) as {UInt8, UInt8, UInt8, UInt8}*
+          bytes_ptr = pointerof(x).as({UInt8, UInt8, UInt8, UInt8}*)
           bytes_ptr.value.each do |b|
             buffer[offset] = b
             offset += 1
           end
           y = ((p.y - @header.y_offset) / @header.y_scale_factor).to_i32
-          bytes_ptr = pointerof(y) as {UInt8, UInt8, UInt8, UInt8}*
+          bytes_ptr = pointerof(y).as({UInt8, UInt8, UInt8, UInt8}*)
           bytes_ptr.value.each do |b|
             buffer[offset] = b
             offset += 1
           end
           z = ((p.z - @header.z_offset) / @header.z_scale_factor).to_i32
-          bytes_ptr = pointerof(z) as {UInt8, UInt8, UInt8, UInt8}*
+          bytes_ptr = pointerof(z).as({UInt8, UInt8, UInt8, UInt8}*)
           bytes_ptr.value.each do |b|
             buffer[offset] = b
             offset += 1
           end
           d16 = p.intensity
-          bytes_ptr = pointerof(d16) as {UInt8, UInt8}*
+          bytes_ptr = pointerof(d16).as({UInt8, UInt8}*)
           bytes_ptr.value.each do |b|
             buffer[offset] = b
             offset += 1
@@ -1386,7 +1384,7 @@ module Lidar
           offset += 1
 
           d16 = p.point_source_id
-          bytes_ptr = pointerof(d16) as {UInt8, UInt8}*
+          bytes_ptr = pointerof(d16).as({UInt8, UInt8}*)
           bytes_ptr.value.each do |b|
             buffer[offset] = b
             offset += 1
@@ -1394,21 +1392,21 @@ module Lidar
 
           # Output the r,g,b data
           r = @rgb_data[i].red.to_u16
-          bytes_ptr = pointerof(r) as {UInt8, UInt8}*
+          bytes_ptr = pointerof(r).as({UInt8, UInt8}*)
           bytes_ptr.value.each do |b|
             buffer[offset] = b
             offset += 1
           end
 
           g = @rgb_data[i].green.to_u16
-          bytes_ptr = pointerof(g) as {UInt8, UInt8}*
+          bytes_ptr = pointerof(g).as({UInt8, UInt8}*)
           bytes_ptr.value.each do |b|
             buffer[offset] = b
             offset += 1
           end
 
           bl = @rgb_data[i].blue.to_u16
-          bytes_ptr = pointerof(bl) as {UInt8, UInt8}*
+          bytes_ptr = pointerof(bl).as({UInt8, UInt8}*)
           bytes_ptr.value.each do |b|
             buffer[offset] = b
             offset += 1
@@ -1420,25 +1418,25 @@ module Lidar
         i = 0
         @point_data.each do |p|
           x = ((p.x - @header.x_offset) / @header.x_scale_factor).to_i32
-          bytes_ptr = pointerof(x) as {UInt8, UInt8, UInt8, UInt8}*
+          bytes_ptr = pointerof(x).as({UInt8, UInt8, UInt8, UInt8}*)
           bytes_ptr.value.each do |b|
             buffer[offset] = b
             offset += 1
           end
           y = ((p.y - @header.y_offset) / @header.y_scale_factor).to_i32
-          bytes_ptr = pointerof(y) as {UInt8, UInt8, UInt8, UInt8}*
+          bytes_ptr = pointerof(y).as({UInt8, UInt8, UInt8, UInt8}*)
           bytes_ptr.value.each do |b|
             buffer[offset] = b
             offset += 1
           end
           z = ((p.z - @header.z_offset) / @header.z_scale_factor).to_i32
-          bytes_ptr = pointerof(z) as {UInt8, UInt8, UInt8, UInt8}*
+          bytes_ptr = pointerof(z).as({UInt8, UInt8, UInt8, UInt8}*)
           bytes_ptr.value.each do |b|
             buffer[offset] = b
             offset += 1
           end
           d16 = p.intensity
-          bytes_ptr = pointerof(d16) as {UInt8, UInt8}*
+          bytes_ptr = pointerof(d16).as({UInt8, UInt8}*)
           bytes_ptr.value.each do |b|
             buffer[offset] = b
             offset += 1
@@ -1453,7 +1451,7 @@ module Lidar
           offset += 1
 
           d16 = p.point_source_id
-          bytes_ptr = pointerof(d16) as {UInt8, UInt8}*
+          bytes_ptr = pointerof(d16).as({UInt8, UInt8}*)
           bytes_ptr.value.each do |b|
             buffer[offset] = b
             offset += 1
@@ -1461,7 +1459,7 @@ module Lidar
 
           # Output the gps time
           gt = @gps_time_data[i]
-          bytes_ptr = pointerof(gt) as {UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8}*
+          bytes_ptr = pointerof(gt).as({UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8}*)
           bytes_ptr.value.each do |b|
             buffer[offset] = b
             offset += 1
@@ -1469,21 +1467,21 @@ module Lidar
 
           # Output the r,g,b data
           r = @rgb_data[i].red.to_u16
-          bytes_ptr = pointerof(r) as {UInt8, UInt8}*
+          bytes_ptr = pointerof(r).as({UInt8, UInt8}*)
           bytes_ptr.value.each do |b|
             buffer[offset] = b
             offset += 1
           end
 
           g = @rgb_data[i].green.to_u16
-          bytes_ptr = pointerof(g) as {UInt8, UInt8}*
+          bytes_ptr = pointerof(g).as({UInt8, UInt8}*)
           bytes_ptr.value.each do |b|
             buffer[offset] = b
             offset += 1
           end
 
           bl = @rgb_data[i].blue.to_u16
-          bytes_ptr = pointerof(bl) as {UInt8, UInt8}*
+          bytes_ptr = pointerof(bl).as({UInt8, UInt8}*)
           bytes_ptr.value.each do |b|
             buffer[offset] = b
             offset += 1

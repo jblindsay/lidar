@@ -10,11 +10,11 @@ crystal tool format
 echo "Running Crystal doc..."
 crystal doc
 
-# echo "Unit tests..."
-# crystal spec
+echo "Unit tests..."
+crystal spec
 
 echo "Crystal is building Lidar..."
-crystal build src/lidar.cr --release
+crystal compile src/lidar.cr --release
 
-echo "Running code..."
-time ./lidar
+# echo "Running code..."
+# time ./lidar

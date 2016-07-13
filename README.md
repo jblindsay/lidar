@@ -25,19 +25,19 @@ file_name = "path/to/file/test.las"
 lf = Lidar::LasFile.new file_name, "r"
 
 # Print the meta data contained in the LAS header
-puts("#{lf.to_s}")
+puts("#{lf}")
 
 # Now print the variable length records (VLRs)
 if lf.header.number_of_vlrs > 0
   (0...lf.header.number_of_vlrs).each { |i|
     puts "VLR #{i + 1}:"
-    puts("#{lf.vlr_data[i].to_s}")
+    puts("#{lf.vlr_data[i]}")
   }
 end
 
 # Print the first 10 points of the LAS data
 (0...10).each do |i|
-  puts("Point #{i + 1} #{lf.get_xyzi_data(i).to_s}")
+  puts("Point #{i + 1} #{lf.get_xyzi_data(i)}")
 end
 
 # Create a new LAS file to write data into
