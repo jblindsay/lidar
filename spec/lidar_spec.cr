@@ -3,7 +3,7 @@ require "../src/lidar/*"
 
 describe Lidar do
   it "works" do
-    file_name = "/Users/johnlindsay/Documents/Programming/CrystalCode/lidar/spec/test_data/test.las"
+    file_name = "./spec/test_data/test.las"
     lf = Lidar::LasFile.new file_name, "r"
     puts("#{lf}")
 
@@ -20,7 +20,7 @@ describe Lidar do
     end
 
     # Create a new LAS file
-    file_name2 = "/Users/johnlindsay/Documents/Programming/CrystalCode/lidar/spec/test_data/test2.las"
+    file_name2 = "./spec/test_data/test2.las"
     lf2 = Lidar::LasFile.new file_name2, "w"
 
     # Add the header
@@ -48,7 +48,7 @@ describe Lidar do
 
     lf2.write
 
-    # now delete the created file to clean up.
+    # now delete the newly created file to clean up.
     if File.exists?(file_name2)
       File.delete(file_name2)
     end

@@ -43,10 +43,10 @@ module Lidar
 
     def to_s(io)
       s = "\tReserved: #{@reserved}\n" +
-        "\tUser ID: #{@user_id}\n" +
-        "\tRecord ID: #{@record_id}\n" +
-        "\tRecord Length: #{@record_length_after_header}\n" +
-        "\tDescription: #{@description.strip}\n"
+          "\tUser ID: #{@user_id}\n" +
+          "\tRecord ID: #{@record_id}\n" +
+          "\tRecord Length: #{@record_length_after_header}\n" +
+          "\tDescription: #{@description.strip}\n"
       if @record_id == 34735
         shorts = [] of UInt16
         i = 0
@@ -96,7 +96,7 @@ module Lidar
 
     def to_s(io)
       s = "{value: #{@value}, return: #{return_number}, returns: #{number_of_returns}," +
-        " scan dir flag: #{scan_direction_flag}, flightline: #{edge_of_flightline}}"
+          " scan dir flag: #{scan_direction_flag}, flightline: #{edge_of_flightline}}"
       io << s
     end
   end
@@ -163,7 +163,7 @@ module Lidar
 
     def to_s(io)
       io << "{value: #{@value}, name: #{classification_name}, synthetic: #{synthetic}," +
-        " keypoint: #{keypoint}, withheld: #{withheld}}"
+            " keypoint: #{keypoint}, withheld: #{withheld}}"
     end
   end
 
@@ -233,14 +233,14 @@ module Lidar
 
     def to_s(io)
       s = "x=#{sprintf("%.4f", @x)}, " +
-        "y=#{sprintf("%.4f", @y)}, " +
-        "z=#{sprintf("%.4f", @z)}, " +
-        "intensity=#{@intensity}, " +
-        "bit field=#{@bit_field}, " +
-        "class field=#{@class_field}, " +
-        "scan angle=#{@scan_angle}, " +
-        "user data=#{@user_data}, " +
-        "point source ID=#{@point_source_id}"
+          "y=#{sprintf("%.4f", @y)}, " +
+          "z=#{sprintf("%.4f", @z)}, " +
+          "intensity=#{@intensity}, " +
+          "bit field=#{@bit_field}, " +
+          "class field=#{@class_field}, " +
+          "scan angle=#{@scan_angle}, " +
+          "user data=#{@user_data}, " +
+          "point source ID=#{@point_source_id}"
       io << s
     end
   end
@@ -319,36 +319,36 @@ module Lidar
 
     def to_s(io)
       s = "File Signature: #{@file_signature}\n" +
-        "File Source ID: #{@file_source_id}\n" +
-        "Global Encoding: #{@global_encoding}\n" +
-        "Project ID1: #{@project_id1}\n" +
-        "Project ID2: #{@project_id2}\n" +
-        "Project ID3: #{@project_id3}\n" +
-        "Project ID4: #{@project_id4}\n" +
-        "Version: #{@version_major}.#{@version_minor}\n" +
-        "System ID: #{@system_identifier.strip}\n" +
-        "Generating Software: #{@generating_software.strip}\n" +
-        "File Creation Day: #{@file_creation_day}\n" +
-        "File Creation Year: #{@file_creation_year}\n" +
-        "Header Size: #{@header_size}\n" +
-        "Offset to Points: #{@offset_to_points}\n" +
-        "Number of VLRs: #{@number_of_vlrs}\n" +
-        "Point Format: #{@point_format}\n" +
-        "Point Record Length: #{@point_record_length}\n" +
-        "Num. of Points: #{@number_of_points}\n" +
-        "Num. Points by Return: #{@number_of_points_by_return}\n" +
-        "X Scale Factor: #{sprintf("%.4f", @x_scale_factor)}\n" +
-        "Y Scale Factor: #{sprintf("%.4f", @y_scale_factor)}\n" +
-        "Z Scale Factor: #{sprintf("%.4f", @z_scale_factor)}\n" +
-        "X Offset: #{sprintf("%.4f", @x_offset)}\n" +
-        "Y Offset: #{sprintf("%.4f", @y_offset)}\n" +
-        "Z Offset: #{sprintf("%.4f", @z_offset)}\n" +
-        "Min. X: #{sprintf("%.4f", @min_x)}\n" +
-        "Max. X: #{sprintf("%.4f", @max_x)}\n" +
-        "Min. Y: #{sprintf("%.4f", @min_y)}\n" +
-        "Max. Y: #{sprintf("%.4f", @max_y)}\n" +
-        "Min. Z: #{sprintf("%.4f", @min_z)}\n" +
-        "Max. Z: #{sprintf("%.4f", @max_z)}"
+          "File Source ID: #{@file_source_id}\n" +
+          "Global Encoding: #{@global_encoding}\n" +
+          "Project ID1: #{@project_id1}\n" +
+          "Project ID2: #{@project_id2}\n" +
+          "Project ID3: #{@project_id3}\n" +
+          "Project ID4: #{@project_id4}\n" +
+          "Version: #{@version_major}.#{@version_minor}\n" +
+          "System ID: #{@system_identifier.strip}\n" +
+          "Generating Software: #{@generating_software.strip}\n" +
+          "File Creation Day: #{@file_creation_day}\n" +
+          "File Creation Year: #{@file_creation_year}\n" +
+          "Header Size: #{@header_size}\n" +
+          "Offset to Points: #{@offset_to_points}\n" +
+          "Number of VLRs: #{@number_of_vlrs}\n" +
+          "Point Format: #{@point_format}\n" +
+          "Point Record Length: #{@point_record_length}\n" +
+          "Num. of Points: #{@number_of_points}\n" +
+          "Num. Points by Return: #{@number_of_points_by_return}\n" +
+          "X Scale Factor: #{sprintf("%.4f", @x_scale_factor)}\n" +
+          "Y Scale Factor: #{sprintf("%.4f", @y_scale_factor)}\n" +
+          "Z Scale Factor: #{sprintf("%.4f", @z_scale_factor)}\n" +
+          "X Offset: #{sprintf("%.4f", @x_offset)}\n" +
+          "Y Offset: #{sprintf("%.4f", @y_offset)}\n" +
+          "Z Offset: #{sprintf("%.4f", @z_offset)}\n" +
+          "Min. X: #{sprintf("%.4f", @min_x)}\n" +
+          "Max. X: #{sprintf("%.4f", @max_x)}\n" +
+          "Min. Y: #{sprintf("%.4f", @min_y)}\n" +
+          "Max. Y: #{sprintf("%.4f", @max_y)}\n" +
+          "Min. Z: #{sprintf("%.4f", @min_z)}\n" +
+          "Max. Z: #{sprintf("%.4f", @max_z)}"
       if @version_major == 1 && @version_minor >= 3
         s += "\nWaveform Data Start: #{@waveform_data_start}"
       end
